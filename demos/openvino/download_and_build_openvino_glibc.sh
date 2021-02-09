@@ -13,6 +13,16 @@ show_usage() {
 
 # Build OpenVINO
 build_openvino() {
+    # upgrade cmake
+    current_cmake_version=$(cmake --version | sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p')
+    required_cmake_ver=3.13
+    if [ ! "$(printf '%s\n' "$required_cmake_ver" "$current_cmake_version" | sort -V | head -n1)" = "$required_cmake_ver" ]; then
+        wget "https://github.com/Kitware/CMake/releases/download/v3.18.4/cmake-3.18.4.tar.gz"
+        tar xf cmake-3.18.4.tar.gz
+        (cd cmake-3.18.4 && ./bootstrap --parallel="$(nproc --all)" && make --jobs="$(nproc --all)" && sudo make install)
+        rm -rf cmake-3.18.4 cmake-3.18.4.tar.gz
+    fi
+    # clone and build openvino
     rm -rf openvino_src && mkdir openvino_src
     pushd openvino_src
     git clone https://github.com/openvinotoolkit/openvino.git .
